@@ -47,8 +47,28 @@ describe('define', function(){
   it('should return 5', function() {assert.equal(8, scheme.interpret("x"))});
 });
 
-describe('lambda', function(){
-  it('should define', function() {assert.equal('undefined', typeof(scheme.interpret("(define mult (lambda (x y) (* x y)))")));});
-  it('should define', function() {assert.equal(12, scheme.interpret("(mult 2 6)"))});
+//describe('lambda', function(){
+//  it('should define', function() {assert.equal('undefined', typeof(scheme.interpret("(define mult (lambda (x y) (* x y)))")));});
+//  it('should define', function() {assert.equal(12, scheme.interpret("(mult 2 6)"))});
+//})
+
+
+describe('env', function(){
+  it('should define', function() {
+    var e1 = scheme.makeEnv(undefined, {'a': 'b'})
+    var e2 = scheme.makeEnv(e1, {2: 3})
+    var e3 = scheme.makeEnv(e2, {'a': 'c'})
+
+    assert.equal(e3.get('a'), 'c');
+    assert.equal(e2.get('a'), 'b');
+
+    assert.equal(e2.get(2), 3);
+    assert.equal(e1.get(2), null);
+    
+    e2.set('a', 'd');
+    assert.equal(e3.get('a'), 'c');    
+    assert.equal(e2.get('a'), 'd');    
+    assert.equal(e1.get('a'), 'b');    
+  });
 })
   

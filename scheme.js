@@ -1,30 +1,38 @@
 
 
-var makeEnv = (function(){
-  var e = {}
+var makeEnv = (function(parentEnv, o){
+  var o = o || {}
   return {
-    get: function(key) { return e[key]; },
-    set: function(key, value) { e[key] = value; },
+    get: function(key) { 
+      if (key in o){
+        return o[key]; 
+      } else if (typeof(parentEnv) == 'undefined'){
+        return null;
+      } else {
+        return parentEnv.get(key);
+      }
+    },
+    set: function(key, value) { o[key] = value; },
   };
 });
 
 
-operators = [
-  ['+', function(a,b) { return a + b; }],
-  ['-', function(a,b) { 
+operators = {
+  '+': function(a,b) { return a + b; },
+  '-': function(a,b) { 
     if (b === undefined) { return -1 * sEval(a); } 
-    else { return a - b }}],
-  ['*', function(a,b) { return a * b; }],
-  ['/', function(a,b) { return a / b; }],
-  ['>', function(a,b) { return a > b; }],
-  ['<', function(a,b) { return a < b; }],
-  ['>=', function(a,b) { return a >= b; }],
-  ['<=', function(a,b) { return a <= b; }],
-  ['eq?', function(a,b) { return a === b; }],
-  ['cons', function(a,b) { return [a].concat(b); }],
-  ['car', function(a) { return a[0]; }],
-  ['cdr', function(a) { return a.slice(1) }],
-  ]
+    else { return a - b }},
+  '*': function(a,b) { return a * b; },
+  '/': function(a,b) { return a / b; },
+  '>': function(a,b) { return a > b; },
+  '<': function(a,b) { return a < b; },
+  '>=': function(a,b) { return a >= b; },
+  '<=': function(a,b) { return a <= b; },
+  'eq?': function(a,b) { return a === b; },
+  'cons': function(a,b) { return [a].concat(b); },
+  'car': function(a) { return a[0]; },
+  'cdr': function(a) { return a.slice(1) },
+}
 
 var loadOperators = function(){
   for (var i=0; i < operators.length; i++){
@@ -36,19 +44,8 @@ var loadOperators = function(){
 
 
 // Create env and load basic operators.
-var env = makeEnv();
-loadOperators()
+var env = makeEnv(undefined, operators);
 
-
-var buildFunction = function(lambda_expr, name){
-  var name = name || null
-  //if (lambda_expr.length < 2) throw 'lambda takes two arguments';
-  var params = lambda_expr[0];
-  var expr = lambda_expr[1];
-  var local_context;
-  var new_func = function(){
-    
-  
 
 
 var isNumber = function(s){
@@ -197,3 +194,4 @@ exports.parse = parse;
 exports.tokenize = tokenize;
 exports.isArray = isArray;
 exports.env = env;
+exports.makeEnv = makeEnv;
