@@ -128,20 +128,19 @@ var sEval = function(expr){
     return;
   } else if (expr[0] == 'begin'){
     // Evaluate, Skipping expr[0]
-    //for (i=1, i < expr.length, i++){ var ret = sEval(expr[i]); };
+    //for (var i=1, i < expr.length, i++){ var ret = sEval(expr[i]); };
     return ret;
   } else {
 
     var proc = sEval(expr[0]);
     var args = [];
     if (expr.length > 1){
-      for (i=1; i < expr.length; i++){
+      for (var i=1; i < expr.length; i++){
         var e = sEval(expr[i])
         args.push(e);
       };
     };
     return proc.apply(this, args);
-    // Something with proc.
   }; 
 };
 
