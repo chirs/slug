@@ -120,9 +120,9 @@ var sEval = function(expr){
       return sEval(expr[3]) 
     }
   } else if (expr[0] == 'set!'){
-    env.set( sEval(expr[1]), sEval(expr[2]) )
+    env.set( expr[1], sEval(expr[2]) )
   } else if (expr[0] == 'define'){
-    env.set( sEval(expr[1]), sEval(expr[2]) )
+    env.set( expr[1], sEval(expr[2]) ) // Presumably key can be anything...
   } else if (expr[0] == 'lambda'){
     // figure out how to apply functions.
     return;

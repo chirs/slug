@@ -1,5 +1,5 @@
 var assert = require('assert');
-var scheme = require('../s2.js');
+var scheme = require('../scheme.js');
 
 
 // From http://stackoverflow.com/questions/7837456/comparing-two-arrays-in-javascript - comparing arrays...
@@ -24,8 +24,7 @@ describe('tokenize', function(){
   describe('equal', function() {
     var je = function(o) { return JSON.encode(o)}; // For comparing arrays.
     it("should return [ '(', '+', '5', '8', ')'] ", function(){ assert.equal(true, scheme.tokenize("(+ 5 8 )").compare(['(', '+', '5', '8', ')'])); });
-    //it("should return ['(', '+', '(', '-', '6', '1', ')' '8', ')']", function(){ assert.equal(scheme.tokenize("(+ (- 6 1) 8 )"), 
-    //                                                                                        ['(', '+', '(', '-', '6', '1', ')', '8', ')']); });
+    it("should return ['(', '+', '(', '-', '6', '1', ')' '8', ')']", function(){ assert.equal(true, scheme.tokenize("(+ (- 6 1) 8 )").compare(                                                                   ['(', '+', '(', '-', '6', '1', ')', '8', ')'])); });
   });
 });
 
@@ -39,4 +38,11 @@ describe('Integers', function(){
     it('should return 40', function(){ assert.equal(scheme.interpret("(* (+ 5 2) 8)"), 56);});
     it('should return 40', function(){ assert.equal(scheme.interpret("(* (+ 5 (- 2)) 8)"), 24);});
   });
+});
+
+describe('define', function(){
+  it('should define', function() {assert.equal('undefined', typeof(scheme.interpret("(define x 5)")))});
+  it('should return 5', function() {assert.equal(5, scheme.interpret("x"))});
+  it('should define', function() {assert.equal('undefined', typeof(scheme.interpret("(set! x 8)")))});
+  it('should return 5', function() {assert.equal(8, scheme.interpret("x"))});
 });
