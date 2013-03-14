@@ -34,9 +34,21 @@ var loadOperators = function(){
   };
 };
 
+
 // Create env and load basic operators.
 var env = makeEnv();
 loadOperators()
+
+
+var buildFunction = function(lambda_expr, name){
+  var name = name || null
+  //if (lambda_expr.length < 2) throw 'lambda takes two arguments';
+  var params = lambda_expr[0];
+  var expr = lambda_expr[1];
+  var local_context;
+  var new_func = function(){
+    
+  
 
 
 var isNumber = function(s){
@@ -125,7 +137,9 @@ var sEval = function(expr){
     env.set( expr[1], sEval(expr[2]) ) // Presumably key can be anything...
   } else if (expr[0] == 'lambda'){
     // figure out how to apply functions.
-    return;
+    return new Proc(expr[1], expr.slice(2));
+
+
   } else if (expr[0] == 'begin'){
     // Evaluate, Skipping expr[0]
     //for (var i=1, i < expr.length, i++){ var ret = sEval(expr[i]); };

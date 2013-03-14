@@ -46,3 +46,9 @@ describe('define', function(){
   it('should define', function() {assert.equal('undefined', typeof(scheme.interpret("(set! x 8)")))});
   it('should return 5', function() {assert.equal(8, scheme.interpret("x"))});
 });
+
+describe('lambda', function(){
+  it('should define', function() {assert.equal('undefined', typeof(scheme.interpret("(define mult (lambda (x y) (* x y)))")));});
+  it('should define', function() {assert.equal(12, scheme.interpret("(mult 2 6)"))});
+})
+  
