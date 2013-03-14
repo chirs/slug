@@ -20,7 +20,7 @@ var makeEnv = (function(parentEnv, o){
 operators = {
   '+': function(a,b) { return a + b; },
   '-': function(a,b) { 
-    if (b === undefined) { return -1 * sEval(a); } 
+    if (b === undefined) { return -1 * a; } 
     else { return a - b }},
   '*': function(a,b) { return a * b; },
   '/': function(a,b) { return a / b; },
@@ -66,15 +66,15 @@ var sEval = function(expr, env){
   } else if (expr[0] == 'quote') {
     return expr[1]
   } else if (expr[0] == 'if') {
-    if (sEval(expr[1])) {
-      return sEval(expr[2]) 
+    if (sEval(expr[1], env)) {
+      return sEval(expr[2], env) 
     } else {
-      return sEval(expr[3]) 
+      return sEval(expr[3], env) 
     }
   } else if (expr[0] == 'set!'){
-    env.set( expr[1], sEval(expr[2]) )
+    env.set( expr[1], sEval(expr[2], env) )
   } else if (expr[0] == 'define'){
-    env.set( expr[1], sEval(expr[2]) ) // Presumably key can be anything...
+    env.set( expr[1], sEval(expr[2], env) ) // Presumably key can be anything...
   } else if (expr[0] == 'lambda'){
     // figure out how to apply functions.
     return new Proc(expr[1], expr.slice(2));
@@ -87,11 +87,11 @@ var sEval = function(expr, env){
     return ret;
   } else {
 
-    var proc = sEval(expr[0]);
+    var proc = sEval(expr[0], env);
     var args = [];
     if (expr.length > 1){
       for (var i=1; i < expr.length; i++){
-        var e = sEval(expr[i])
+        var e = sEval(expr[i], env)
         args.push(e);
       };
     };
