@@ -71,4 +71,12 @@ describe('env', function(){
     assert.equal(e1.get('a'), 'b');    
   });
 })
+
+
+describe('begin', function(){
+  it('should define', function() {
+    var result = scheme.interpret("(begin (+ 1 2) (+ 1 3) (+ 2 3))")
+    assert.equal(result, 5);
+  });
+})
   
