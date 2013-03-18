@@ -1,10 +1,13 @@
 var assert = require('assert');
 var scheme = require('../scheme.js');
 var input = require('../input.js');
+var parse = require('../parse.js');
+var Env = require('../env.js');
 
+var ge = Env.makeGlobalEnv()
 
 var tInterpret = function(text){
-  return scheme.interpret(text, input.globalEnv);
+  return input.interpret(text, ge);
 }
 
 
@@ -29,8 +32,8 @@ Array.prototype.compare = function(array) {  //prototype defines the .compare as
 describe('tokenize', function(){
   describe('equal', function() {
     var je = function(o) { return JSON.encode(o)}; // For comparing arrays.
-    it("should return [ '(', '+', '5', '8', ')'] ", function(){ assert.equal(true, scheme.tokenize("(+ 5 8 )").compare(['(', '+', '5', '8', ')'])); });
-    it("should return ['(', '+', '(', '-', '6', '1', ')' '8', ')']", function(){ assert.equal(true, scheme.tokenize("(+ (- 6 1) 8 )").compare(                                                                   ['(', '+', '(', '-', '6', '1', ')', '8', ')'])); });
+    it("should return [ '(', '+', '5', '8', ')'] ", function(){ assert.equal(true, parse.tokenize("(+ 5 8 )").compare(['(', '+', '5', '8', ')'])); });
+    it("should return ['(', '+', '(', '-', '6', '1', ')' '8', ')']", function(){ assert.equal(true, parse.tokenize("(+ (- 6 1) 8 )").compare(                                                                   ['(', '+', '(', '-', '6', '1', ')', '8', ')'])); });
   });
 });
 
@@ -61,9 +64,9 @@ describe('define', function(){
 
 describe('env', function(){
   it('should define', function() {
-    var e1 = scheme.makeEnv(undefined, {'a': 'b'})
-    var e2 = scheme.makeEnv(e1, {2: 3})
-    var e3 = scheme.makeEnv(e2, {'a': 'c'})
+    var e1 = Env.makeEnv(undefined, {'a': 'b'})
+    var e2 = Env.makeEnv(e1, {2: 3})
+    var e3 = Env.makeEnv(e2, {'a': 'c'})
 
     assert.equal(e3.get('a'), 'c');
     assert.equal(e2.get('a'), 'b');

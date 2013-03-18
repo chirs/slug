@@ -1,13 +1,20 @@
 var scheme = require('./scheme.js');
+var parse = require('./parse.js');
+
+
+var interpret = function(s, env){ 
+  return scheme.sEval(parse.parse(s), env); 
+};
+
 
 var repl = function(env) {
   process.stdin.resume();
   process.stdin.setEncoding('utf8');
   process.stdout.write("scheme>> ");
   process.stdin.on('data', function (chunk) {
-    var expr = scheme.parse(chunk);
+    //var expr = parse.parse(chunk);
     try {
-      returnValue = String(scheme.sEval(expr), env);
+      returnValue = String(interpret(chunk, env));
       process.stdout.write(returnValue + '\n');
     } catch(err) {
       process.stdout.write("Whoops! We had an error.\n");
@@ -17,28 +24,5 @@ var repl = function(env) {
   });
 };
 
-
-operators = {
-  '+': function(a,b) { return a + b; },
-  '-': function(a,b) { 
-    if (b === undefined) { return -1 * a; } 
-    else { return a - b }},
-  '*': function(a,b) { return a * b; },
-  '/': function(a,b) { return a / b; },
-  '>': function(a,b) { return a > b; },
-  '<': function(a,b) { return a < b; },
-  '>=': function(a,b) { return a >= b; },
-  '<=': function(a,b) { return a <= b; },
-  'eq?': function(a,b) { return a === b; },
-  'cons': function(a,b) { return [a].concat(b); },
-  'car': function(a) { return a[0]; },
-  'cdr': function(a) { return a.slice(1) },
-}
-
-// Create env and load basic operators.
-var globalEnv = scheme.makeEnv(undefined, operators);
-
-repl(globalEnv);
-
-
-exports.globalEnv = globalEnv
+exports.interpret = interpret
+exports.repl = repl

@@ -1,24 +1,28 @@
 
+// https://github.com/fogus/lithp/blob/master/src/py/lisp.py
+// The original Lisp described by McCarthy in his 1960 paper describes the following function set:
+//
+//    1.  `atom`
+//    2.  `car`
+//    3.  `cdr`
+//    4.  `cond`
+//    5.  `cons`
+//    6.  `eq`
+//    7.  `quote`
+//
+// Plus two special forms:
+//
+//    1.  `lambda` *(defined in [lithp.py](index.html))*
+//    2.  `label`
+//
+// <http://www-formal.stanford.edu/jmc/recursive.html>
+//
+// The `Lisp` class defines the magnificent seven in terms of the runtime environment built thus far (i.e. dynamic scope, lambda, etc.).
 
-var makeEnv = (function(parentEnv, o){
-  var o = o || {}
-  return {
-    get: function(key) { 
-      if (key in o){
-        return o[key]; 
-      } else if (typeof(parentEnv) == 'undefined'){
-        return null;
-      } else {
-        return parentEnv.get(key);
-      }
-    },
-    set: function(key, value) { o[key] = value; },
-  };
-});
+
+var makeEnv = require('./env.js').makeEnv
 
 
-
-var isNumber = function(s){ return /^\d+$/.exec(s) !== null;};
 var isString = function(s){ return typeof(s) == 'string';};
 var isSymbol = function(s) {}
 var isArray = function (o) {
@@ -27,13 +31,6 @@ var isArray = function (o) {
 };
 
 
-var toAtom = function(s) {
-  if (isNumber(s)) {
-    return parseInt(s);
-  } else {
-    return s;
-  }
-}
 
 
 var sEval = function(expr, env){
@@ -95,39 +92,5 @@ var sEval = function(expr, env){
 
 
 
-var tokenize = function(s){ 
-  var s2 = s.replace(/\(/g, " ( ").replace(/\)/g, " ) ")
-  var l = s2.split(/\s+/).filter(function(e){return e !== "";}); // Remove empty elements.
-  return l
-};
-
-var readFrom = function(tokens){
-  // Turn the token list into a tree.
-  if (tokens.length == 0){ throw "out of tokens!" };
-
-  var token = tokens.shift();
-  if (token == '('){
-    var L = [];
-    while (tokens[0] != ')'){ 
-      L.push(readFrom(tokens)); 
-    }
-    tokens.shift(); // Remove )
-    return L;
-  } else if (token == ')'){
-    throw "mismatched parentheses!"
-  } else {
-    return toAtom(token);
-  }
-};
-
-var parse = function(s){ return readFrom(tokenize(s)); }
-var interpret = function(s, env){ return sEval(parse(s), env); };
-
-exports.interpret = interpret
-exports.readFrom = readFrom;
-exports.toAtom = toAtom;
 exports.sEval = sEval;
-exports.parse = parse;
-exports.tokenize = tokenize;
 exports.isArray = isArray;
-exports.makeEnv = makeEnv;
