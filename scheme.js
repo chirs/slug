@@ -17,27 +17,6 @@ var makeEnv = (function(parentEnv, o){
 });
 
 
-operators = {
-  '+': function(a,b) { return a + b; },
-  '-': function(a,b) { 
-    if (b === undefined) { return -1 * a; } 
-    else { return a - b }},
-  '*': function(a,b) { return a * b; },
-  '/': function(a,b) { return a / b; },
-  '>': function(a,b) { return a > b; },
-  '<': function(a,b) { return a < b; },
-  '>=': function(a,b) { return a >= b; },
-  '<=': function(a,b) { return a <= b; },
-  'eq?': function(a,b) { return a === b; },
-  'cons': function(a,b) { return [a].concat(b); },
-  'car': function(a) { return a[0]; },
-  'cdr': function(a) { return a.slice(1) },
-}
-
-
-
-// Create env and load basic operators.
-var globalEnv = makeEnv(undefined, operators);
 
 var isNumber = function(s){ return /^\d+$/.exec(s) !== null;};
 var isString = function(s){ return typeof(s) == 'string';};
@@ -56,15 +35,9 @@ var toAtom = function(s) {
   }
 }
 
-var zip = function(arrays) {
-  return arrays[0].map(function(_,i){
-    return arrays.map(function(array){return array[i]})
-  });
-}
-
 
 var sEval = function(expr, env){
-  env = env || globalEnv;
+  //env = env || globalEnv;
 
   if (isString(expr)) {
     return env.get(expr);
@@ -102,7 +75,7 @@ var sEval = function(expr, env){
   } else if (expr[0] == 'begin'){
     // Evaluate, Skipping expr[0]
     for (var i=1; i < expr.length; i++){ 
-      var ret = sEval(expr[i]); 
+      var ret = sEval(expr[i], env); 
     };
     return ret;
   } else {
@@ -130,27 +103,25 @@ var tokenize = function(s){
 
 var readFrom = function(tokens){
   // Turn the token list into a tree.
-  if (tokens.length == 0){ raise; };
+  if (tokens.length == 0){ throw "out of tokens!" };
 
   var token = tokens.shift();
   if (token == '('){
-    var L = []
+    var L = [];
     while (tokens[0] != ')'){ 
       L.push(readFrom(tokens)); 
     }
     tokens.shift(); // Remove )
     return L;
-  }  else if (token == ')'){
-    raise;
+  } else if (token == ')'){
+    throw "mismatched parentheses!"
   } else {
     return toAtom(token);
   }
 };
 
 var parse = function(s){ return readFrom(tokenize(s)); }
-var interpret = function(s){ return sEval(parse(s)); };
-
-
+var interpret = function(s, env){ return sEval(parse(s), env); };
 
 exports.interpret = interpret
 exports.readFrom = readFrom;
@@ -159,5 +130,4 @@ exports.sEval = sEval;
 exports.parse = parse;
 exports.tokenize = tokenize;
 exports.isArray = isArray;
-exports.globalEnv = globalEnv;
 exports.makeEnv = makeEnv;
