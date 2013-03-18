@@ -79,4 +79,21 @@ describe('begin', function(){
     assert.equal(result, 5);
   });
 })
+
+
+describe('lambda', function(){
+  it('should define', function() {
+
+    scheme.interpret("(define times5 (lambda (b) (* b 5)))")
+    assert.equal(40, scheme.interpret("(times5 8)"));
+
+    scheme.interpret("(define foo (lambda (a b) (+ a b)))")
+    assert.equal(scheme.interpret("(foo 3 8)"), 11)
+
+    scheme.interpret("(define higher (lambda (a) (lambda (b) (* a b))))")
+    scheme.interpret("(define times6 (higher 6))")
+    assert.equal(48, scheme.interpret("(times6 8)"));
+
+  });
+})
   

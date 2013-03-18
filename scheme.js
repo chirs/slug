@@ -56,6 +56,13 @@ var toAtom = function(s) {
   }
 }
 
+var zip = function(arrays) {
+  return arrays[0].map(function(_,i){
+    return arrays.map(function(array){return array[i]})
+  });
+}
+
+
 var sEval = function(expr, env){
   env = env || globalEnv;
 
@@ -74,10 +81,16 @@ var sEval = function(expr, env){
   } else if (expr[0] == 'set!'){
     env.set( expr[1], sEval(expr[2], env) )
   } else if (expr[0] == 'define'){
-    env.set( expr[1], sEval(expr[2], env) ) // Presumably key can be anything...
+    env.set( expr[1], sEval(expr[2], env) ) // Presumably key can be anything?
   } else if (expr[0] == 'lambda'){
-    // figure out how to apply functions.
-    return new Proc(expr[1], expr.slice(2));
+    var args = expr[1];
+    var fexpr = expr[2];
+    return function(){
+      var bindings = Array.prototype.slice.call(arguments); // Get bindings from function property.
+      // Need to figure out scope. This is doing global binding for function parameters.
+      for (var i=0; i<bindings.length; i++){ env.set(args[i], sEval(bindings[i], env));}
+      return sEval(fexpr, env);
+    }
 
   } else if (expr[0] == 'begin'){
     // Evaluate, Skipping expr[0]
@@ -129,6 +142,8 @@ var readFrom = function(tokens){
 
 var parse = function(s){ return readFrom(tokenize(s)); }
 var interpret = function(s){ return sEval(parse(s)); };
+
+
 
 exports.interpret = interpret
 exports.readFrom = readFrom;
