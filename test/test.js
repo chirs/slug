@@ -97,3 +97,21 @@ describe('lambda', function(){
   });
 })
   
+
+
+describe('lambda', function(){
+  it('should define', function() {
+    scheme.interpret("(define x 100)")
+    assert.equal(100, scheme.interpret("x"))
+
+    scheme.interpret("(define foo (lambda (x y) (+ x y)))")
+    assert.equal(100, scheme.interpret("x"))
+
+    // Make sure parameter binding doesn't overwrite outer variables.
+    scheme.interpret("(foo 10 20)")
+    assert.equal(scheme.interpret("x"), 100)
+
+                 
+
+  });
+})

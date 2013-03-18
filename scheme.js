@@ -83,13 +83,20 @@ var sEval = function(expr, env){
   } else if (expr[0] == 'define'){
     env.set( expr[1], sEval(expr[2], env) ) // Presumably key can be anything?
   } else if (expr[0] == 'lambda'){
+
     var args = expr[1];
     var fexpr = expr[2];
+    var e = makeEnv(env)
+    
     return function(){
+      
       var bindings = Array.prototype.slice.call(arguments); // Get bindings from function property.
       // Need to figure out scope. This is doing global binding for function parameters.
-      for (var i=0; i<bindings.length; i++){ env.set(args[i], sEval(bindings[i], env));}
-      return sEval(fexpr, env);
+      for (var i=0; i<bindings.length; i++){ 
+        var val= sEval(bindings[i], env);
+        e.set(args[i], val);
+      }
+      return sEval(fexpr, e);
     }
 
   } else if (expr[0] == 'begin'){
