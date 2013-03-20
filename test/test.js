@@ -70,12 +70,24 @@ describe('atom', function(){
     it("should return true", function(){ assert.equal(sym, parse.toAtom("mySymbol"))});
     it("should return true", function(){ assert.equal(true, parse.toAtom("#t"))});
     it("should return true", function(){ assert.equal(false, parse.toAtom("#f"))});
-    it("should return true", function(){ assert.equal("a string", parse.toAtom('"a string"'))});
+    it("should return true", function(){ assert.equal("a string", parse.toAtom("\"a string\""))});
   });
 });
 
 
-describe('Integers', function(){
+describe('primitives', function(){
+  describe('equal', function() {
+    var sym = parse.toSymbol("mySymbol");
+    it("should return true", function(){ assert.equal(true, tInterpret("#t"))});
+    it("should return true", function(){ assert.equal(false, tInterpret("#f"))});
+    it("should return true", function(){ assert.equal(false, tInterpret("#f"))});
+    it("should return true", function(){ assert.equal(true, tInterpret("(eq? #t #t)"))});
+
+  });
+});
+
+
+describe('integers', function(){
   describe('equal', function(){
     it('should return 5', function(){ assert.equal(tInterpret("5"), 5); });
     it('should return 13', function(){ assert.equal(tInterpret("(+ 5 8)"), 13);});
