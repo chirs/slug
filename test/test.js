@@ -29,38 +29,6 @@ Array.prototype.compare = function(array) {  //prototype defines the .compare as
 
 
 
-describe('tokenize', function(){
-  describe('equal', function() {
-    var je = function(o) { return JSON.encode(o)}; // For comparing arrays.
-    it("should return [ '(', '+', '5', '8', ')'] ", function(){ assert.equal(true, parse.tokenize("(+ 5 8 )").compare(['(', '+', '5', '8', ')'])); });
-    it("should return ['(', '+', '(', '-', '6', '1', ')' '8', ')']", function(){ assert.equal(true, parse.tokenize("(+ (- 6 1) 8 )").compare(                                                                   ['(', '+', '(', '-', '6', '1', ')', '8', ')'])); });
-  });
-});
-
-
-describe('Integers', function(){
-  describe('equal', function(){
-    it('should return 5', function(){ assert.equal(tInterpret("5"), 5); });
-    it('should return 13', function(){ assert.equal(tInterpret("(+ 5 8)"), 13);});
-    it('should return -3', function(){ assert.equal(tInterpret("(- 5 8)"), -3);});
-    it('should return 40', function(){ assert.equal(tInterpret("(* 5 8)"), 40);});
-    it('should return 40', function(){ assert.equal(tInterpret("(* (+ 5 2) 8)"), 56);});
-    it('should return 40', function(){ assert.equal(tInterpret("(* (+ 5 (- 2)) 8)"), 24);});
-  });
-});
-
-describe('define', function(){
-  it('should define', function() {assert.equal('undefined', typeof(tInterpret("(define x 5)")))});
-  it('should return 5', function() {assert.equal(5, tInterpret("x"))});
-  it('should define', function() {assert.equal('undefined', typeof(tInterpret("(set! x 8)")))});
-  it('should return 5', function() {assert.equal(8, tInterpret("x"))});
-});
-
-//describe('lambda', function(){
-//  it('should define', function() {assert.equal('undefined', typeof(tInterpret("(define mult (lambda (x y) (* x y)))")));});
-//  it('should define', function() {assert.equal(12, tInterpret("(mult 2 6)"))});
-//})
-
 
 describe('env', function(){
   it('should define', function() {
@@ -82,12 +50,76 @@ describe('env', function(){
 })
 
 
-describe('begin', function(){
-  it('should define', function() {
-    var result = tInterpret("(begin (+ 1 2) (+ 1 3) (+ 2 3))")
-    assert.equal(result, 5);
+
+describe('symbol', function(){
+  describe('equal', function() {
+    var s = "myFunc";
+    var sym = parse.toSymbol(s);
+    it("should return true", function(){ assert.equal(parse.toSymbol("myFunc"), sym); });
+    it("should return false", function(){ assert.notEqual("myFunc", sym); });
+    it("should return false", function(){ assert.notEqual(parse.toSymbol("myFuncx"), sym) });
+
   });
+});
+
+
+describe('atom', function(){
+  describe('equal', function() {
+    var sym = parse.toSymbol("mySymbol");
+    it("should return true", function(){ assert.equal(5, parse.toAtom("5"))});
+    it("should return true", function(){ assert.equal(sym, parse.toAtom("mySymbol"))});
+    it("should return true", function(){ assert.equal(true, parse.toAtom("#t"))});
+    it("should return true", function(){ assert.equal(false, parse.toAtom("#f"))});
+    it("should return true", function(){ assert.equal("a string", parse.toAtom('"a string"'))});
+  });
+});
+
+
+describe('Integers', function(){
+  describe('equal', function(){
+    it('should return 5', function(){ assert.equal(tInterpret("5"), 5); });
+    it('should return 13', function(){ assert.equal(tInterpret("(+ 5 8)"), 13);});
+    it('should return -3', function(){ assert.equal(tInterpret("(- 5 8)"), -3);});
+    it('should return 40', function(){ assert.equal(tInterpret("(* 5 8)"), 40);});
+    it('should return 40', function(){ assert.equal(tInterpret("(* (+ 5 2) 8)"), 56);});
+    it('should return 40', function(){ assert.equal(tInterpret("(* (+ 5 (- 2)) 8)"), 24);});
+  });
+});
+
+
+
+
+describe('tokenize', function(){
+  describe('equal', function() {
+    var je = function(o) { return JSON.encode(o)}; // For comparing arrays.
+    it("should return [ '(', '+', '5', '8', ')'] ", function(){ assert.equal(true, parse.tokenize("(+ 5 8 )").compare(['(', '+', '5', '8', ')'])); });
+    it("should return ['(', '+', '(', '-', '6', '1', ')' '8', ')']", function(){ assert.equal(true, parse.tokenize("(+ (- 6 1) 8 )").compare(                                                                   ['(', '+', '(', '-', '6', '1', ')', '8', ')'])); });
+  });
+});
+
+
+
+describe('define', function(){
+  it('should define', function() {assert.equal('undefined', typeof(tInterpret("(define x 5)")))});
+  it('should return 5', function() {assert.equal(5, tInterpret("x"))});
+  it('should define', function() {assert.equal('undefined', typeof(tInterpret("(set! x 8)")))});
+  it('should return 5', function() {assert.equal(8, tInterpret("x"))});
 })
+
+describe('define2', function(){
+  it('should define', function() {
+    tInterpret("(define x 100)")
+    assert.equal(100, tInterpret("x"))
+
+    tInterpret("(define foo (lambda (x y) (+ x y)))")
+    assert.equal(100, tInterpret("x"))
+
+    // Make sure parameter binding doesn't overwrite outer variables.
+    tInterpret("(foo 10 20)")
+    assert.equal(tInterpret("x"), 100)
+
+  })
+});
 
 
 describe('lambda', function(){
@@ -105,22 +137,14 @@ describe('lambda', function(){
 
   });
 })
-  
 
 
-describe('lambda', function(){
+
+
+
+describe('begin', function(){
   it('should define', function() {
-    tInterpret("(define x 100)")
-    assert.equal(100, tInterpret("x"))
-
-    tInterpret("(define foo (lambda (x y) (+ x y)))")
-    assert.equal(100, tInterpret("x"))
-
-    // Make sure parameter binding doesn't overwrite outer variables.
-    tInterpret("(foo 10 20)")
-    assert.equal(tInterpret("x"), 100)
-
-                 
-
+    var result = tInterpret("(begin (+ 1 2) (+ 1 3) (+ 2 3))")
+    assert.equal(result, 5);
   });
 })

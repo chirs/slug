@@ -1,14 +1,30 @@
 
 var isNumber = function(s){ return /^\d+$/.exec(s) !== null;};
 
-// This should be called in eval, right?
-var toAtom = function(s) {
-  if (isNumber(s)) {
-    return parseInt(s);
+
+symbolTable = {}
+
+var toAtom = function(token){
+  if (token == '#t') { return true; }
+  else if (token == '#f') { return false; }
+  else if (token[0] == '"') { return token.slice(1, token.length-1); }
+  else if (isNumber(token)){ return parseInt(token); }
+  else { return toSymbol(token); }
+};
+
+var toSymbol = function(s){
+  if (s in symbolTable){
+    //return symbolTable[s];
   } else {
-    return s;
+    var o = { s: s, _symbol: true, };
+    symbolTable[s] = o;
   }
+  return symbolTable[s];
 }
+
+var isSymbol = function(s) { return (s._symbol === true ); }
+    
+
 
 
 
@@ -46,5 +62,8 @@ var parse = function(s){ return readFrom(tokenize(s)); }
 exports.tokenize = tokenize;
 exports.readFrom = readFrom;
 exports.parse = parse;
+exports.toSymbol = toSymbol;
+exports.toAtom = toAtom;
+exports.isSymbol = isSymbol;
 
 
