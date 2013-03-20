@@ -1,25 +1,4 @@
 
-// https://github.com/fogus/lithp/blob/master/src/py/lisp.py
-// The original Lisp described by McCarthy in his 1960 paper describes the following function set:
-//
-//    1.  `atom`
-//    2.  `car`
-//    3.  `cdr`
-//    4.  `cond`
-//    5.  `cons`
-//    6.  `eq`
-//    7.  `quote`
-//
-// Plus two special forms:
-//
-//    1.  `lambda` *(defined in [lithp.py](index.html))*
-//    2.  `label`
-//
-// <http://www-formal.stanford.edu/jmc/recursive.html>
-//
-// The `Lisp` class defines the magnificent seven in terms of the runtime environment built thus far (i.e. dynamic scope, lambda, etc.).
-
-
 var makeEnv = require('./env.js').makeEnv
 
 
@@ -31,6 +10,64 @@ var isArray = function (o) {
 };
 
 
+var _if = "if"
+var _quote = "quote"
+var _set = "set"
+var _define = "define"
+var _lambda = "lambda"
+var _begin = "begin"
+
+var sEval2 = function(expr, env){
+  while (true) {
+    if (isSymbol(expr)) { return env.get(expr) }
+    else if (!isArray(expr)) { return expr;  } // Constant literal.
+    else if (expr[0] == _quote) { return x.slice(1, x.length) } 
+    else if (expr[0] == _if) { // Don't return, just delegate evaluation to the correct expression.
+      var pred = sEval2(expr[1], env)
+      if (pred) { expr = expr[2] } 
+      else { expr = expr[3] }
+    } else if (expr[0] == _set){
+      // What's the difference between set! and define?
+      env.set(expr[1], sEval2(expr[2], env))
+      return
+    } else if (expr[0] == _define) {
+      env.set(expr[1], sEval2(expr[2], env))
+      return      
+    } else if (expr[0] == _lambda) {
+      // Lambda magic.
+      var args = expr[1];
+      var fexpr = expr[2];
+      var e = makeEnv(env)
+      return function(){
+        var bindings = Array.prototype.slice.call(arguments); // Get bindings from function property.
+        for (var i=0; i<bindings.length; i++){ 
+          var val= sEval2(bindings[i], env);
+          e.set(args[i], val);
+      }
+      return sEval2(fexpr, e);
+      }
+
+    } else if (expr[0] == _begin) {
+      var exprs = expr.slice(1, expr.length)
+      for (var i=1; i < exprs.length-1; i++) {
+        sEval2(exprs[i], env)
+      }
+      expr = expr[exprs.length-1]
+    } else {
+      var proc = sEval2(expr[0], env);
+      var args = [];
+      if (expr.length > 1){
+        for (var i=1; i < expr.length; i++){
+          var e = sEval2(expr[i], env)
+          args.push(e);
+        };
+      };
+      return proc.apply(this, args);
+
+
+    }
+  }
+}
 
 
 var sEval = function(expr, env){
@@ -89,7 +126,7 @@ var sEval = function(expr, env){
   }; 
 };
 
-
+sEval = sEval2
 
 
 exports.sEval = sEval;

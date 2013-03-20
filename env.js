@@ -16,7 +16,7 @@ var makeEnv = (function(parentEnv, o){
 });
 
 
-operators = {
+primitives = {
   '+': function(a,b) { return a + b; },
   '-': function(a,b) { 
     if (b === undefined) { return -1 * a; } 
@@ -34,7 +34,7 @@ operators = {
 }
 
 var makeGlobalEnv = function(){
-  return makeEnv(undefined, operators);
+  return makeEnv(undefined, primitives);
 }
 
 
