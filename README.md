@@ -1,3 +1,1 @@
-
-
-A very simple scheme interpreter in javascript.
+A scheme interpreter in javascript, loosely based on lis.py by Peter Norvig.
