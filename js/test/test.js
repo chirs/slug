@@ -1,5 +1,5 @@
 var assert = require('assert');
-var scheme = require('../scheme.js');
+var scheme = require('../eval.js');
 var input = require('../input.js');
 var parse = require('../parse.js');
 var Env = require('../env.js');

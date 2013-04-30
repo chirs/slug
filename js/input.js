@@ -1,4 +1,4 @@
-var scheme = require('./scheme.js');
+var scheme = require('./eval.js');
 var parse = require('./parse.js');
 
 
