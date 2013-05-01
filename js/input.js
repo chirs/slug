@@ -7,6 +7,7 @@ var interpret = function(s, env){
 };
 
 
+// Repl doesn't seem to work without node...
 var repl = function(env) {
   process.stdin.resume();
   process.stdin.setEncoding('utf8');
@@ -25,4 +26,4 @@ var repl = function(env) {
 };
 
 exports.interpret = interpret
-exports.repl = repl
+//exports.repl = repl
