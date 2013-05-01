@@ -1,7 +1,7 @@
 var p = require('./parse.js');
 
 
-var makeEnv = require('./env.js').makeEnv
+var Env = require('./env.js').Env
 
 
 var isString = function(s){ return typeof(s) == 'string';};
@@ -50,7 +50,7 @@ var sEval = function(expr, env){
       // Lambda magic.
       var args = expr[1]; // (x y z)
       var fexpr = expr[2]; // (+ x y z)
-      var e = makeEnv(env)
+      var e = new Env(env)
       return function(){
         var bindings = Array.prototype.slice.call(arguments); // Get variable arguments to funciton.
         for (var i=0; i<bindings.length; i++){ 
@@ -76,8 +76,6 @@ var sEval = function(expr, env){
         };
       };
       return proc.apply(this, args);
-
-
     }
   }
 }

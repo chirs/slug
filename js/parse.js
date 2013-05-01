@@ -24,10 +24,6 @@ var toSymbol = function(s){
 
 var isSymbol = function(s) { return (s._symbol === true ); }
     
-
-
-
-
 var tokenize = function(s){ 
   var s2 = s.replace(/\(/g, " ( ").replace(/\)/g, " ) ")
   var l = s2.split(/\s+/).filter(function(e){return e !== "";}); // Remove empty elements.
@@ -54,9 +50,6 @@ var readFrom = function(tokens){
 };
 
 var parse = function(s){ return readFrom(tokenize(s)); }
-
-
-
 
 
 exports.tokenize = tokenize;

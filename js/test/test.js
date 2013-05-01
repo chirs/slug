@@ -2,9 +2,9 @@ var assert = require('assert');
 var scheme = require('../eval.js');
 var input = require('../input.js');
 var parse = require('../parse.js');
-var Env = require('../env.js');
+var env = require('../env.js');
 
-var ge = Env.makeGlobalEnv()
+var ge = env.makeGlobalEnv()
 
 var tInterpret = function(text){
   return input.interpret(text, ge);
@@ -32,9 +32,9 @@ Array.prototype.compare = function(array) {  //prototype defines the .compare as
 
 describe('env', function(){
   it('should define', function() {
-    var e1 = Env.makeEnv(undefined, {'a': 'b'})
-    var e2 = Env.makeEnv(e1, {2: 3})
-    var e3 = Env.makeEnv(e2, {'a': 'c'})
+    var e1 = new env.Env(undefined, {'a': 'b'})
+    var e2 = new env.Env(e1, {2: 3})
+    var e3 = new env.Env(e2, {'a': 'c'})
 
     assert.equal(e3.get('a'), 'c');
     assert.equal(e2.get('a'), 'b');

@@ -1,23 +1,30 @@
 
 
-var makeEnv = (function(parentEnv, o){
-  var o = o || {}
-  return {
-    get: function(key) { 
-      if (key in o){
-        return o[key]; 
-      } else if (typeof(parentEnv) == 'undefined'){
-        return null;
-      } else {
-        return parentEnv.get(key);
-      }
-    },
-    set: function(key, value) { o[key] = value; },
-  };
-});
+var Env = function(parentEnv, o){
+  this.parentEnv = parentEnv
+  this.o = o || {}
+};
+
+Env.prototype.get = function(key){
+  if (key in this.o){
+    return this.o[key]; 
+  } else if (typeof(this.parentEnv) == 'undefined'){
+    return null;
+  } else {
+    return parentEnv.get(key);
+  }
+};
+
+Env.prototype.set = function(key, value){
+  this.o[key] = value;
+}
+
+var makeGlobalEnv = function(){
+  return new Env(undefined, primitives);
+}
 
 
-primitives = {
+var primitives = {
   '+': function(a,b) { return a + b; },
   '-': function(a,b) { 
     if (b === undefined) { return -1 * a; } 
@@ -34,11 +41,5 @@ primitives = {
   'cdr': function(a) { return a.slice(1) },
 }
 
-var makeGlobalEnv = function(){
-  return makeEnv(undefined, primitives);
-}
-
-
-
-exports.makeEnv = makeEnv;
+exports.Env = Env;
 exports.makeGlobalEnv = makeGlobalEnv;
