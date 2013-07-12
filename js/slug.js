@@ -1,78 +1,5 @@
-// Handle very simple env.
-
-var Env = function(parentEnv, o){
-  this.parentEnv = parentEnv
-  this.o = o || {}
-};
-
-// Merge these two.
-
-Env.prototype.get = function(key){
-  if (key in this.o){
-    return this.o[key]; 
-  } else if (typeof(this.parentEnv) == 'undefined'){
-    return null;
-  } else {
-    return parentEnv.get(key);
-  }
-};
-
-Env.prototype.set = function(key, value){
-  this.o[key] = value;
-}
-
-
-var primitives = {
-  '+': function(a,b) { return a + b; },
-  '-': function(a,b) { 
-    if (b === undefined) { return -1 * a; } 
-    else { return a - b }},
-  '*': function(a,b) { return a * b; },
-  '/': function(a,b) { return a / b; },
-  '>': function(a,b) { return a > b; },
-  '<': function(a,b) { return a < b; },
-  '>=': function(a,b) { return a >= b; },
-  '<=': function(a,b) { return a <= b; },
-  'eq?': function(a,b) { return a === b; },
-  'cons': function(a,b) { return [a].concat(b); },
-  'car': function(a) { return a[0]; },
-  'cdr': function(a) { return a.slice(1) },
-}
-
-
-// Symbols, atoms, ...
-
-symbolTable = {}
-
-var isNumber = function(s){ return /^\d+$/.exec(s) !== null;};
-
-var toAtom = function(token){
-  if (token == '#t') { return true; }
-  else if (token == '#f') { return false; }
-  else if (token[0] == '"') { return token.slice(1, token.length-1); }
-  else if (isNumber(token)){ return parseInt(token); }
-  else { return toSymbol(token); }
-};
-
-var toSymbol = function(s){
-  if (s in symbolTable){
-    //return symbolTable[s];
-  } else {
-    var o = { s: s, _symbol: true, };
-    symbolTable[s] = o;
-  }
-  return symbolTable[s];
-}
-
-var isSymbol = function(s) { return (s._symbol === true ); }
-
-var isString = function(s){ return typeof(s) == 'string';};
-
-var isArray = function (o) {
-  return (o instanceof Array) ||
-    (Object.prototype.toString.apply(o) === '[object Array]');
-};
-
+// Lex and parse.
+var parse = function(s){ return readFrom(tokenize(s)); }
     
 var tokenize = function(s){ 
   var s2 = s.replace(/\(/g, " ( ").replace(/\)/g, " ) ")
@@ -99,7 +26,87 @@ var readFrom = function(tokens){
   }
 };
 
-var parse = function(s){ return readFrom(tokenize(s)); }
+
+// Maintain environment.
+
+var Env = function(parentEnv, o){
+  this.parentEnv = parentEnv
+  this.o = o || {}
+};
+
+Env.prototype = {
+  get: function(key){
+    if (key in this.o){
+      return this.o[key]; 
+    } else if (typeof(this.parentEnv) == 'undefined'){
+      return null;
+    } else {
+      return parentEnv.get(key);
+    }
+  },
+  
+  set: function(key, value){
+    this.o[key] = value;
+  }
+};
+
+
+
+var primitives = {
+  '+': function(a,b) { return a + b; },
+  '-': function(a,b) { 
+    if (b === undefined) { return -1 * a; } 
+    else { return a - b }},
+  '*': function(a,b) { return a * b; },
+  '/': function(a,b) { return a / b; },
+  '>': function(a,b) { return a > b; },
+  '<': function(a,b) { return a < b; },
+  '>=': function(a,b) { return a >= b; },
+  '<=': function(a,b) { return a <= b; },
+  'eq?': function(a,b) { return a === b; },
+  'cons': function(a,b) { return [a].concat(b); },
+  'car': function(a) { return a[0]; },
+  'cdr': function(a) { return a.slice(1) },
+}
+
+
+// Handle data values.
+
+var isNumber = function(s){ 
+  return /^\d+$/.exec(s) !== null;
+};
+
+var toAtom = function(token){
+  if (token == '#t') { return true; }
+  else if (token == '#f') { return false; }
+  else if (token[0] == '"') { return token.slice(1, token.length-1); }
+  else if (isNumber(token)){ return parseInt(token); }
+  else { return toSymbol(token); }
+};
+
+
+var isSymbol = function(s) { return (s._symbol === true ); }
+
+var isString = function(s){ return typeof(s) == 'string';};
+
+var isArray = function (o) {
+  return (o instanceof Array) ||
+    (Object.prototype.toString.apply(o) === '[object Array]');
+};
+
+
+// Symbol table is a way of maintaining keyboards, basically?
+var symbolTable = {}
+
+var toSymbol = function(s){
+  if (s in symbolTable){
+    //return symbolTable[s];
+  } else {
+    var o = { s: s, _symbol: true, };
+    symbolTable[s] = o;
+  }
+  return symbolTable[s];
+}
 
 
 var _if = toSymbol("if")
@@ -112,28 +119,42 @@ var _if = toSymbol("if")
 // Something is not quite right converting between symbols and values...
 
 
-// Ugh. what happened here?
+// Ugh. can this be reduced??
 var sEval = function(expr, env){
   while (true) { 
+
+    // Symbol
     if (isSymbol(expr)) { return env.get(expr.s) }
-    else if (!isArray(expr)) { return expr;  } // Constant literal.
+
+    // Array
+    else if (!isArray(expr)) { return expr;  } 
+
+    // Quote
     else if (expr[0] == _quote) { return x.slice(1, x.length) } 
+
+    // If statement
     else if (expr[0] == _if) { // Don't return, just delegate evaluation to the correct expression.
       var pred = sEval(expr[1], env)
       if (pred) { expr = expr[2] } 
       else { expr = expr[3] }
+
+    // Apply set.
     } else if (expr[0] == _set){
       // What's the difference between set! and define?
       if (isSymbol(expr[1])){
         env.set(expr[1].s, sEval(expr[2], env))
         return      
       } else { throw "Cannot set! " + expr[1] + " since it is not a symbol." }
+
+    // Apply define.
     } else if (expr[0] == _define) {
       // Is this the right place to be doing symbol check?
       if (isSymbol(expr[1])){
         env.set(expr[1].s, sEval(expr[2], env))
         return      
       } else { throw "Cannot define " + expr[1] + " since it is not a symbol." }
+
+    // Lambda expression.
     } else if (expr[0] == _lambda) {
       // Lambda magic.
       var args = expr[1]; // (x y z)
@@ -148,12 +169,15 @@ var sEval = function(expr, env){
       return sEval(fexpr, e);
       }
 
+    // Begin statement?
     } else if (expr[0] == _begin) {
       var exprs = expr.slice(1, expr.length)
       for (var i=1; i < exprs.length-1; i++) {
         sEval(exprs[i], env)
       }
       expr = expr[expr.length-1]
+
+    // Give up. Try to evaulate this proc.
     } else {
       var proc = sEval(expr[0], env);
       var args = [];
@@ -168,6 +192,8 @@ var sEval = function(expr, env){
     }
   }
 }
+
+// Interpreter helpers.
 
 var interpret = function(s, env){ 
   return sEval(parse(s), env); 
