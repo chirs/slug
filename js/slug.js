@@ -1,26 +1,8 @@
 
 var interpret = function(s, env){ 
-  return scheme.sEval(parse.parse(s), env); 
+  return sEval(parse(s), env); 
 };
 
-
-// Repl doesn't seem to work without node.
-var repl = function(env) {
-  process.stdin.resume();
-  process.stdin.setEncoding('utf8');
-  process.stdout.write("scheme>> ");
-  process.stdin.on('data', function (chunk) {
-    //var expr = parse.parse(chunk);
-    try {
-      returnValue = String(interpret(chunk, env));
-      process.stdout.write(returnValue + '\n');
-    } catch(err) {
-      process.stdout.write("Whoops! We had an error.\n");
-    }
-    process.stdout.write("scheme>> ");
-
-  });
-};
 
 
 var Env = function(parentEnv, o){
@@ -118,9 +100,6 @@ var readFrom = function(tokens){
 var parse = function(s){ return readFrom(tokenize(s)); }
 
 
-//var Env = require('./env.js').Env
-
-
 var isString = function(s){ return typeof(s) == 'string';};
 
 var isArray = function (o) {
@@ -140,10 +119,9 @@ var _if = toSymbol("if")
 
 // Something is not quite right converting between symbols and values...
 
-
 var sEval = function(expr, env){
   while (true) {
-    if (p.isSymbol(expr)) { return env.get(expr.s) }
+    if (isSymbol(expr)) { return env.get(expr.s) }
     else if (!isArray(expr)) { return expr;  } // Constant literal.
     else if (expr[0] == _quote) { return x.slice(1, x.length) } 
     else if (expr[0] == _if) { // Don't return, just delegate evaluation to the correct expression.
@@ -152,13 +130,13 @@ var sEval = function(expr, env){
       else { expr = expr[3] }
     } else if (expr[0] == _set){
       // What's the difference between set! and define?
-      if (p.isSymbol(expr[1])){
+      if (isSymbol(expr[1])){
         env.set(expr[1].s, sEval(expr[2], env))
         return      
       } else { throw "Cannot set! " + expr[1] + " since it is not a symbol." }
     } else if (expr[0] == _define) {
       // Is this the right place to be doing symbol check?
-      if (p.isSymbol(expr[1])){
+      if (isSymbol(expr[1])){
         env.set(expr[1].s, sEval(expr[2], env))
         return      
       } else { throw "Cannot define " + expr[1] + " since it is not a symbol." }
@@ -191,9 +169,12 @@ var sEval = function(expr, env){
           args.push(e);
         };
       };
+
       return proc.apply(this, args);
     }
   }
 }
+
+var globalEnv = makeGlobalEnv();
 
 

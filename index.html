@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>INDEX</title>
+  <title>scheme</title>
 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="description" content="Scheme interpreter">
@@ -16,7 +16,7 @@
       $(document).ready(function() {
         var Repl = function(el, interpreter){
           if (interpreter === undefined){
-            interpreter = function(e){ return e + " in bed" };
+            interpreter = function(s){ return s + " in bed" };
            }
           var self = this
           self.el = el
@@ -35,28 +35,22 @@
               self.el.val('');    
              }
           });
-
         };
 
-      var repl = new Repl($("#repl-input"));
+      var func = function(s){
+        return interpret(s, globalEnv);
+      };
+
+      var repl = new Repl($("#repl-input"), func);
       });
-
-
 
     }).call(this);
   </script>
 
-
-
 </head>
 
-
 <body>
-
-<div id="repl">
-
-<p><input id="repl-input" /></p>
-
-</div>
-
+  <div id="repl">
+    <p><input id="repl-input" /></p>
+  </div>
 </body>
