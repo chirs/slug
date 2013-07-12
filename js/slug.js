@@ -1,14 +1,11 @@
-
-var interpret = function(s, env){ 
-  return sEval(parse(s), env); 
-};
-
-
+// Handle very simple env.
 
 var Env = function(parentEnv, o){
   this.parentEnv = parentEnv
   this.o = o || {}
 };
+
+// Merge these two.
 
 Env.prototype.get = function(key){
   if (key in this.o){
@@ -22,10 +19,6 @@ Env.prototype.get = function(key){
 
 Env.prototype.set = function(key, value){
   this.o[key] = value;
-}
-
-var makeGlobalEnv = function(){
-  return new Env(undefined, primitives);
 }
 
 
@@ -47,10 +40,11 @@ var primitives = {
 }
 
 
-var isNumber = function(s){ return /^\d+$/.exec(s) !== null;};
-
+// Symbols, atoms, ...
 
 symbolTable = {}
+
+var isNumber = function(s){ return /^\d+$/.exec(s) !== null;};
 
 var toAtom = function(token){
   if (token == '#t') { return true; }
@@ -71,6 +65,14 @@ var toSymbol = function(s){
 }
 
 var isSymbol = function(s) { return (s._symbol === true ); }
+
+var isString = function(s){ return typeof(s) == 'string';};
+
+var isArray = function (o) {
+  return (o instanceof Array) ||
+    (Object.prototype.toString.apply(o) === '[object Array]');
+};
+
     
 var tokenize = function(s){ 
   var s2 = s.replace(/\(/g, " ( ").replace(/\)/g, " ) ")
@@ -100,15 +102,6 @@ var readFrom = function(tokens){
 var parse = function(s){ return readFrom(tokenize(s)); }
 
 
-var isString = function(s){ return typeof(s) == 'string';};
-
-var isArray = function (o) {
-  return (o instanceof Array) ||
-    (Object.prototype.toString.apply(o) === '[object Array]');
-};
-
-
-
 var _if = toSymbol("if")
 , _quote = toSymbol("quote")
 , _set = toSymbol("set!")
@@ -116,11 +109,12 @@ var _if = toSymbol("if")
 , _lambda = toSymbol("lambda")
 , _begin = toSymbol("begin")
 
-
 // Something is not quite right converting between symbols and values...
 
+
+// Ugh. what happened here?
 var sEval = function(expr, env){
-  while (true) {
+  while (true) { 
     if (isSymbol(expr)) { return env.get(expr.s) }
     else if (!isArray(expr)) { return expr;  } // Constant literal.
     else if (expr[0] == _quote) { return x.slice(1, x.length) } 
@@ -175,6 +169,18 @@ var sEval = function(expr, env){
   }
 }
 
-var globalEnv = makeGlobalEnv();
+var interpret = function(s, env){ 
+  return sEval(parse(s), env); 
+};
 
+var makeGlobalEnv = function(){
+  return new Env(undefined, primitives);
+}
+
+var makeInterpreter = function(){
+    var env = makeGlobalEnv();
+    return function(s){
+        return interpret(s, env);
+    }
+}
 

@@ -37,11 +37,8 @@
           });
         };
 
-      var func = function(s){
-        return interpret(s, globalEnv);
-      };
-
-      var repl = new Repl($("#repl-input"), func);
+      window.i = makeInterpreter();
+      var repl = new Repl($("#repl-input"), window.i);
       });
 
     }).call(this);
