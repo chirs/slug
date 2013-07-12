@@ -4,16 +4,59 @@
   <title>INDEX</title>
 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="verify-v1" content="ES7MT4WW7ZSsA5/BJKdhUjxWnzEkJL8E0UdRHLlL9Yo=" />
-  <meta name="description" content="Slug">
+  <meta name="description" content="Scheme interpreter">
 
-  <script type="text/javascript" src="/js/bundle.js"></script>
+  <!--<script type="text/javascript" src="/js/slug.js"></script>-->
+  <script type="text/javascript" src="js/jquery-1.8.3.js"></script>
+  <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" >
+
+  <script type="text/javascript" >
+
+    (function() {
+      $(document).ready(function() {
+        var Repl = function(el, interpreter){
+          if (interpreter === undefined){
+            interpreter = function(e){ return e + " in bed" };
+           }
+          var self = this
+          self.el = el
+          self.interpreter = interpreter
+
+          self.el.keydown(function(event){
+            if (event.which === 13){
+              var text = self.el.val();
+
+              var nd = $("<div>").html(text);
+              $("body").append(nd)
+              var resp = self.interpreter(text);
+              if (!!resp === true){              
+                $("body").append(resp)
+              }
+              self.el.val('');    
+             }
+          });
+
+        };
+
+      var repl = new Repl($("#repl-input"));
+      });
+
+
+
+    }).call(this);
+  </script>
+
+
 
 </head>
 
 
 <body>
 
-<p>scheme!</p>
+<div id="repl">
+
+<p><input id="repl-input" /></p>
+
+</div>
 
 </body>
