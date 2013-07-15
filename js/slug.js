@@ -2,11 +2,13 @@
 var parse = function(s){ return readFrom(tokenize(s)); }
     
 var tokenize = function(s){ 
-  var s2 = s.replace(/\(/g, " ( ").replace(/\)/g, " ) ")
+  var s2 = s.replace(/\(/g, " ( ").replace(/\)/g, " ) ") 
   var l = s2.split(/\s+/).filter(function(e){return e !== "";}); // Remove empty elements.
   return l
 };
 
+// bad name.
+// readFrom turns a list of tokens into an AST (?)
 var readFrom = function(tokens){
   // Turn the token list into a tree.
   if (tokens.length == 0){ throw "out of tokens!" };
@@ -14,20 +16,23 @@ var readFrom = function(tokens){
   var token = tokens.shift();
   if (token == '('){
     var L = [];
-    while (tokens[0] != ')'){ 
+    while (tokens[0] !== ')'){ 
       L.push(readFrom(tokens)); 
     }
     tokens.shift(); // Remove )
     return L;
-  } else if (token == ')'){
-    throw "mismatched parentheses!"
-  } else {
-    return toAtom(token);
-  }
+  } 
+  if (token === ')'){
+    throw "Syntax error: mismatched parenthesees."
+  } 
+
+  // This is coercing everything into an atom
+  // wrong behavior, very probably.
+  return toAtom(token);
 };
 
 
-// Maintain environment.
+// Handle environment.
 
 var Env = function(parentEnv, o){
   this.parentEnv = parentEnv
@@ -49,8 +54,6 @@ Env.prototype = {
     this.o[key] = value;
   }
 };
-
-
 
 var primitives = {
   '+': function(a,b) { return a + b; },
@@ -81,7 +84,12 @@ var toAtom = function(token){
   else if (token == '#f') { return false; }
   else if (token[0] == '"') { return token.slice(1, token.length-1); }
   else if (isNumber(token)){ return parseInt(token); }
-  else { return toSymbol(token); }
+  //throw "Cannot convert to Atom?"
+
+  return toSymbol(token);
+  //console.log(symbolTable);
+  //if (token in symbolTable){ return symbolTable[token]; }
+  //else { throw "Cannot convert to Atom."; }
 };
 
 
@@ -94,10 +102,10 @@ var isArray = function (o) {
     (Object.prototype.toString.apply(o) === '[object Array]');
 };
 
-
 // Symbol table is a way of maintaining keyboards, basically?
 var symbolTable = {}
 
+// Why the comment?
 var toSymbol = function(s){
   if (s in symbolTable){
     //return symbolTable[s];
@@ -108,7 +116,7 @@ var toSymbol = function(s){
   return symbolTable[s];
 }
 
-
+// These should be the only symbols...not everything.
 var _if = toSymbol("if")
 , _quote = toSymbol("quote")
 , _set = toSymbol("set!")
@@ -116,46 +124,56 @@ var _if = toSymbol("if")
 , _lambda = toSymbol("lambda")
 , _begin = toSymbol("begin")
 
-// Something is not quite right converting between symbols and values...
 
-
-// Ugh. can this be reduced??
+// Ugh. can this be refactored?
 var sEval = function(expr, env){
-  while (true) { 
+  //console.log('1');
 
+  while (true) { 
     // Symbol
+    //console.log('2');
+    //console.log(isSymbol(expr));
     if (isSymbol(expr)) { return env.get(expr.s) }
 
     // Array
-    else if (!isArray(expr)) { return expr;  } 
+    //console.log('3');
+    if (!isArray(expr)) { return expr;  } 
 
     // Quote
-    else if (expr[0] == _quote) { return x.slice(1, x.length) } 
+    //console.log('4');
+    if (expr[0] == _quote) { return x.slice(1, x.length) } 
 
     // If statement
-    else if (expr[0] == _if) { // Don't return, just delegate evaluation to the correct expression.
+    //console.log('5');
+    if (expr[0] == _if) { // Don't return, just delegate evaluation to the correct expression.
       var pred = sEval(expr[1], env)
       if (pred) { expr = expr[2] } 
       else { expr = expr[3] }
+    }
 
     // Apply set.
-    } else if (expr[0] == _set){
+    //console.log('6');
+    if (expr[0] == _set){
       // What's the difference between set! and define?
       if (isSymbol(expr[1])){
         env.set(expr[1].s, sEval(expr[2], env))
         return      
       } else { throw "Cannot set! " + expr[1] + " since it is not a symbol." }
+    } 
 
     // Apply define.
-    } else if (expr[0] == _define) {
+    //console.log('7');
+    if (expr[0] == _define) {
       // Is this the right place to be doing symbol check?
       if (isSymbol(expr[1])){
         env.set(expr[1].s, sEval(expr[2], env))
         return      
       } else { throw "Cannot define " + expr[1] + " since it is not a symbol." }
+    }
 
     // Lambda expression.
-    } else if (expr[0] == _lambda) {
+    // console.log('8');
+    if (expr[0] == _lambda) {
       // Lambda magic.
       var args = expr[1]; // (x y z)
       var fexpr = expr[2]; // (+ x y z)
@@ -165,33 +183,24 @@ var sEval = function(expr, env){
         for (var i=0; i<bindings.length; i++){ 
           var val = sEval(bindings[i], env); // evaluate argument to function.
           e.set(args[i].s, val); // bind expr value to parameter.
+        }
+        return sEval(fexpr, e);
       }
-      return sEval(fexpr, e);
-      }
-
-    // Begin statement?
-    } else if (expr[0] == _begin) {
-      var exprs = expr.slice(1, expr.length)
-      for (var i=1; i < exprs.length-1; i++) {
-        sEval(exprs[i], env)
-      }
-      expr = expr[expr.length-1]
-
-    // Give up. Try to evaulate this proc.
-    } else {
-      var proc = sEval(expr[0], env);
-      var args = [];
-      if (expr.length > 1){
-        for (var i=1; i < expr.length; i++){
-          var e = sEval(expr[i], env)
-          args.push(e);
-        };
-      };
-
-      return proc.apply(this, args);
     }
-  }
-}
+
+    // Fallback. Try to evaulate this proc.
+    var proc = sEval(expr[0], env);
+    var args = [];
+    if (expr.length > 1){
+      for (var i=1; i < expr.length; i++){
+        var e = sEval(expr[i], env)
+        args.push(e);
+      };
+    };
+    return proc.apply(this, args);
+  };
+};
+
 
 // Interpreter helpers.
 
@@ -200,6 +209,7 @@ var interpret = function(s, env){
 };
 
 var makeGlobalEnv = function(){
+  //console.log(primitives);
   return new Env(undefined, primitives);
 }
 
